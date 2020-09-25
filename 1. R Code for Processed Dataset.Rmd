@@ -1,0 +1,483 @@
+---
+title: "Data Processing"
+author: "Jennifer"
+date: "2019/4/24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Step 1 Load the Data
+There are 3 files in this project. 
+We will first load population file and feature file to prepare for clustering
+```{r}
+setwd('C:/Users/Jennifer/Downloads')
+azdias = read.csv('1_Raw_dataset_population.csv',sep = ';')
+feature_info = read.csv('1_Raw_Feature_Summary.csv', sep = ';')
+azdias_copy = azdias
+```
+Check the structure of the pupolation data after it's loaded.
+
+```{r}
+str(azdias)
+```
+Check the structure of the feature data after it's loaded.
+```{r}
+feature_info
+```
+### Step 2 Assess Missing Data
+#### Step 2.1 Convert Missing Value into NaNs
+The fourth column of the feature attributes summary (loaded in above as feat_info) documents the codes from the data dictionary that indicate missing or unknown data. 
+Thus, we may need to transfer the missing or unkown data into NaNs for further processing.
+```{r}
+# # Identify missing or unknown data values and convert them to NaNs.
+library(stringr)
+na_list = sapply(1:85, function(x) feature_info[x,4])
+na_list = as.character(na_list)
+na_list= gsub('\\[','',na_list)
+na_list = gsub('\\]','',na_list)
+na_list = str_split(na_list, ",") 
+
+for (i in 1:85){
+  print(i)
+  na_code = as.list(na_list[[i]])
+  print(na_code)
+  for (na in na_code){
+    if (na == ""){
+      next
+    }
+    else if (class(na)== "character"){
+      print(na)
+      azdias_copy[azdias_copy[,i] %in% c(na,""),i] = NA
+    } else{
+      na = as.integer(na)
+      print(na)
+      azdias_copy[azdias_copy[,i] %in% c(na,""),i] = NA
+    }
+  }
+}
+```
+check how many NaNs in population dataset
+```{r}
+sum(is.na(azdias_copy))
+```
+#### Step 2.2 Assess Missing Data in Each Column
+How much missing data is present in each column? 
+There are a few columns that are outliers in terms of the proportion of values that are missing.
+```{r}
+missingdata_column = lapply(1:85, function(x) sum(is.na(azdias_copy[,x])))##colSums(is.na(df))
+col_name = colnames(azdias_copy);
+missingdata_c = as.data.frame(missingdata_column,col.names = col_name)
+missingdata_c
+```
+```{r}
+missingdata_c = t(missingdata_c)
+colnames(missingdata_c) = c("missingcount")
+missingdata_c = as.data.frame(missingdata_c)
+missingdata_c
+```
+Then using data visualization to check on these columns
+```{r}
+library(ggplot2)
+ggplot(missingdata_c, aes(x = missingcount))+
+  geom_histogram()
+```
+After visualizing, for this project the columns, these columns can be just removed from the dataframe.
+```{r}
+# identify columns with missing values greater than 250000
+which(missingdata_c$missingcount>250000)
+```
+```{r}
+#drop column that has missing data more than 20% .GER_TYP ,GEBURTSJAHR, TITEL_KZ,ANZ_TITEL,KK_KUNDENTYP,ALTER_HH,KBA05_BAUMAX
+library(dplyr)
+azdias_copy = select(azdias_copy,-c(1, 12, 41, 44, 48, 65))
+feature_info = feature_info[-c(1, 12, 41, 44, 48, 65),]
+str(azdias_copy)
+```
+#### Step 2.3 Assess Missing Data in Each Row
+Next, the similar assessment is performed on rows.
+```{r}
+# calculate na in rows
+missingdata_rows = lapply(1:891221, function(x) sum(is.na(azdias_copy[x,])))
+```
+```{r}
+missingdata_r = as.data.frame(missingdata_rows)
+missingdata_r = t(missingdata_r)
+missingdata_r
+```
+Some groups of points that have a very different numbers of missing values. 
+```{r}
+colnames(missingdata_r) = c("missingcount")
+azdias_copy = cbind(azdias_copy,missingdata_r)
+str(azdias_copy)
+```
+```{r}
+ggplot(azdias_copy, aes(x=missingcount))+
+  geom_histogram()
+```
+From the graph we can see the highest percentage of missing value one column contain is around 60%. 
+Divide the data into two subsets: one for data points that are above some threshold (here is 5) for missing values, and a second subset for points below that threshold.
+```{r}
+# Write code to divide the data into two subsets based on the number of missing values in each row.
+azdias1 = azdias_copy[azdias_copy$missingcount<=5,]
+azdias2 = azdias_copy[azdias_copy$missingcount>5,]
+azdias1 = select(azdias1,-c(missingcount))
+nrow(azdias1)
+str(azdias1)
+```
+In order to know what to do with the outlier rows, we should see if the distribution of data values on columns that are not missing data (or are missing very little data) are similar or different between the two groups. 
+Select at least five of these columns and compare the distribution of values.
+If the distributions of non-missing features look similar between the data with many missing values and the data with few or no missing values, then we could argue that simply dropping those points from the analysis won't present a major issue. 
+On the other hand, if the data with many missing values looks very different from the data with few or no missing values, then we should make a note on those data as special.
+```{r}
+# Compare the distribution of values for at least five columns where there are no or few missing values, between the two subsets. 
+ggplot(azdias1,aes(x=LP_STATUS_GROB, fill = ..count..))+
+  geom_bar(binwidth = 0.5)
+ggplot(azdias2,aes(x=LP_STATUS_GROB, fill = ..count..))+
+  geom_bar(binwidth = 0.5)
+ggplot(azdias1,aes(x=PLZ8_ANTG4, fill = ..count..))+
+  geom_bar(binwidth = 0.5)
+ggplot(azdias2,aes(x=PLZ8_ANTG4, fill = ..count..))+
+  geom_bar(binwidth = 0.5)
+ggplot(azdias1,aes(x=WOHNDAUER_2008, fill = ..count..))+
+  geom_bar(binwidth = 0.5)
+ggplot(azdias2,aes(x=WOHNDAUER_2008, fill = ..count..))+
+  geom_bar(binwidth = 0.5)
+ggplot(azdias1,aes(x=ANZ_HH_TITEL, fill = ..count..))+
+  geom_bar(binwidth = 0.5)
+ggplot(azdias2,aes(x=ANZ_HH_TITEL, fill = ..count..))+
+  geom_bar(binwidth = 0.5)
+ggplot(azdias1,aes(x=LP_LEBENSPHASE_FEIN, fill = ..count..))+
+  geom_bar(binwidth = 0.5)
+ggplot(azdias2,aes(x=LP_LEBENSPHASE_FEIN, fill = ..count..))+
+  geom_bar(binwidth = 0.5)
+```
+From the graphs we can see the features have similar trend in both groups
+### Step 3 Select and Re-Encode Feature
+Since the unsupervised learning techniques to be used will only work on data that is encoded numerically, we need to make a few encoding changes or additional assumptions to be able to make progress.
+In addition, while almost all of the values in the dataset are encoded using numbers, not all of them represent numeric values. 
+```{r}
+# check type
+table(feature_info$type)
+```
+For numeric & ordinal data: can be kept without changes.
+For categorical & mixed data: re-processing
+#### Step 3.1 Re-Encode Categorical Features
+```{r}
+feature_info[feature_info$type == 'categorical',]
+```
+For categorical data, you would ordinarily need to encode the levels as dummy variables.
+```{r}
+# look into categorical features
+for (i in feature_info[feature_info$type == 'categorical','attribute']){
+  plt = ggplot(azdias1,aes_string(x=i))+
+    geom_bar()
+  print(plt)
+}
+```
+Depending on the number of categories, perform one of the following:
+For binary (ANREDE_KZ, GREEN_AVANTGARDE, SOHO_KZ and VERS_TYP) categoricals that take numeric values, we keep them without needing to do anything.
+There is one binary variable (OST_WEST_KZ) that takes on non-numeric values. For this one, we re-encode the values as numbers or create a dummy variable.
+For multi-level categoricals (three or more values), we choose to encode the values using multiple dummy variables (e.g. CJT_GESAMTTYP), and just drop variables with too much levels.
+```{r}
+#transfer to dummy variable 'CJT_GESAMTTYP', 'FINANZTYP','LP_FAMILIE_GROB', 'LP_STATUS_GROB', #'NATIONALITAET_KZ', 'SHOPPER_TYP', 'ZABEOTYP', 'OST_WEST_KZ' 
+library(fastDummies)
+azdias1_oh = dummy_cols(azdias1, select_columns = c('CJT_GESAMTTYP','FINANZTYP', 'LP_FAMILIE_GROB', 'LP_STATUS_GROB', 'NATIONALITAET_KZ', 'SHOPPER_TYP', 'ZABEOTYP', 'OST_WEST_KZ'))
+str(azdias1_oh)
+azdias1_oh = select(azdias1_oh, -c('CJT_GESAMTTYP','FINANZTYP', 'LP_FAMILIE_GROB', 'LP_STATUS_GROB', 'NATIONALITAET_KZ', 'SHOPPER_TYP', 'ZABEOTYP', 'OST_WEST_KZ'))
+#drop features that have too many levels 'GFK_URLAUBERTYP', 'LP_FAMILIE_FEIN', 'LP_STATUS_FEIN', 'GEBAEUDETYP', 'CAMEO_DEUG_2015', 'CAMEO_DEU_2015'
+azdias1_oh = select(azdias1_oh, -c('GFK_URLAUBERTYP', 'LP_FAMILIE_FEIN', 'LP_STATUS_FEIN', 'GEBAEUDETYP', 'CAMEO_DEUG_2015', 'CAMEO_DEU_2015'))
+str(azdias1_oh)
+```
+Step3.1 Summary: 
+By checking the feat_info, we can see there are 20 categorical features.
+Based on the value counts, I drop the features with >= 8 values, namely 'GFK_URLAUBERTYP', 'LP_FAMILIE_FEIN', 'LP_STATUS_FEIN', 'GEBAEUDETYP', 'CAMEO_DEUG_2015' and 'CAMEO_DEU_2015'.
+There are 5 binary (two-level) categoricals which we don't need to make changes, except one of them ('OST_WEST_KZ') takes on non-numeric values.
+So we need to one-hot encode it as well.
+The rest 8 categorical features are changed into dummy variables. These features are:
+'CJT_GESAMTTYP','FINANZTYP', 'LP_FAMILIE_GROB', 'LP_STATUS_GROB', NATIONALITAET_KZ', 'SHOPPER_TYP', 'ZABEOTYP', 'OST_WEST_KZ'.
+So in the end, after feature engineering on categorical features, we have 101 columns in total.
+
+#### Step 3.2 Engineer Mixed-Type Features
+In the mixed feature, there are two types are particular that deserve attention
+"PRAEGENDE_JUGENDJAHRE" combines information on three dimensions: generation by decade, movement (mainstream vs. avantgarde), and nation (east vs. west). While there aren't enough levels to disentangle east from west, you should create two new variables to capture the other two dimensions: an interval-type variable for decade, and a binary variable for movement.
+```{r}
+# change PRAEGENDE_JUGENDJAHRE into 3 new variables, decades, region, and movement
+# create first new variable: 'movement'
+create_newfeature1 = function(azdias1_oh){
+  azdias1_oh$movement[azdias1_oh$PRAEGENDE_JUGENDJAHRE %in% c(1,3,5,8,10,12,14)] = 'MainStream'
+  azdias1_oh$movement[azdias1_oh$PRAEGENDE_JUGENDJAHRE %in% c(2,4,6,7,9,11,13,15)] = 'Avantgarde'
+  # create second new varibale: 'Region': East, West, EAST+WEST
+  azdias1_oh$region[azdias1_oh$PRAEGENDE_JUGENDJAHRE %in% c(7,12,13)] = 'E'
+  azdias1_oh$region[azdias1_oh$PRAEGENDE_JUGENDJAHRE %in% c(6,10,11)] = 'W'
+  azdias1_oh$region[azdias1_oh$PRAEGENDE_JUGENDJAHRE %in% c(1,2,3,4,5,8,9,14,15)] = 'E+W'
+  # create third new varibale: 'decades': 40ies, 50ies, 60ies, 70ies, 80-ies, 90ies
+  azdias1_oh$decades[azdias1_oh$PRAEGENDE_JUGENDJAHRE %in% c(1,2)] = '40s'
+  azdias1_oh$decades[azdias1_oh$PRAEGENDE_JUGENDJAHRE %in% c(3,4)] = '50s'
+  azdias1_oh$decades[azdias1_oh$PRAEGENDE_JUGENDJAHRE %in% c(5,6,7)] = '60s'
+  azdias1_oh$decades[azdias1_oh$PRAEGENDE_JUGENDJAHRE %in% c(8,9)] = '70s'
+  azdias1_oh$decades[azdias1_oh$PRAEGENDE_JUGENDJAHRE %in% c(10,11,12,13)] = '80s'
+  azdias1_oh$decades[azdias1_oh$PRAEGENDE_JUGENDJAHRE %in% c(14,15)] = '90s'
+  return(azdias1_oh)
+}
+
+azdias1_oh = create_newfeature1(azdias1_oh)
+str(azdias1_oh)
+```
+```{r}
+# One-hot encode the 3 new features
+azdias1_oh = dummy_cols(azdias1_oh, select_columns = c('movement','region','decades'))
+# drop original column
+azdias1_oh = select(azdias1_oh,-c(PRAEGENDE_JUGENDJAHRE,movement,region,decades))
+str(azdias1_oh)
+```
+"CAMEO_INTL_2015" combines information on two axes: wealth and life stage. Break up the two-digit codes by their 'tens'-place and 'ones'-place digits into two new ordinal variables (which, for the purposes of this project, is equivalent to just treating them as their raw numeric values).
+```{r}
+# change "CAMEO_INTL_2015" nto two new variables,household_wealth and life_stage
+
+create_newfeature2 = function(azdias1_oh){
+  # create first new varibale: 'household_wealth',poor, less_affluent, comfortable, prosperous, wealthy
+  azdias1_oh$household_wealth[azdias1_oh$CAMEO_INTL_2015 %in% c(51,52,53,54,55)] = 'poor'
+  azdias1_oh$household_wealth[azdias1_oh$CAMEO_INTL_2015 %in% c(41,42,43,44,45)] = 'less_affluent'
+  azdias1_oh$household_wealth[azdias1_oh$CAMEO_INTL_2015 %in% c(31,32,33,34,35)] = 'comfortable'
+  azdias1_oh$household_wealth[azdias1_oh$CAMEO_INTL_2015 %in% c(21,22,23,24,25)] = 'prosperous'
+  azdias1_oh$household_wealth[azdias1_oh$CAMEO_INTL_2015 %in% c(11,12,13,14,15)] = 'wealthy'
+  # create second new varibale: 'life_stage',Pre-Family Couples & Singles, Young Couples With Children, Families With School Age Children, Older Families &  Mature Couples, Elders In Retirement
+  azdias1_oh$life_stage[azdias1_oh$CAMEO_INTL_2015 %in% c(11,21,31,41,51)] = 'Pre-Family Couples & Singles'
+  azdias1_oh$life_stage[azdias1_oh$CAMEO_INTL_2015 %in% c(12,22,32,42,52)] = 'Young Couples With Children'
+  azdias1_oh$life_stage[azdias1_oh$CAMEO_INTL_2015 %in% c(13,23,33,43,53)] = 'Families With School Age Children'
+  azdias1_oh$life_stage[azdias1_oh$CAMEO_INTL_2015 %in% c(14,24,34,44,54)] = 'Older Families &  Mature Couples'
+  azdias1_oh$life_stage[azdias1_oh$CAMEO_INTL_2015 %in% c(15,25,35,45,55)] = 'Elders In Retirement'
+  return(azdias1_oh)
+}
+
+azdias1_oh = create_newfeature2(azdias1_oh)
+
+str(azdias1_oh)
+```
+```{r}
+# One-hot encode the 2 new features
+azdias1_oh = dummy_cols(azdias1_oh, select_columns = c('household_wealth','life_stage'))
+# drop original column
+azdias1_oh = select(azdias1_oh,-c(CAMEO_INTL_2015,household_wealth,life_stage))
+str(azdias1_oh)
+```
+```{r}
+# Drop Other Features 'LP_LEBENSPHASE_FEIN', 'LP_LEBENSPHASE_GROB', 'WOHNLAGE', 'PLZ8_BAUMAX'
+azdias1_oh = select(azdias1_oh, -c(LP_LEBENSPHASE_FEIN,LP_LEBENSPHASE_GROB,WOHNLAGE,PLZ8_BAUMAX))
+str(azdias1_oh)
+```
+Step3.2 Summary: 
+In this step, I hard code feature PRAEGENDE_JUGENDJAHRE and add new features to interpret the orginal meaning.
+The second feature CAMEO_INTL_2015 and be separated into 2 features by breaking up 2-digit value into two.
+The rest of the features are dropped to simplify the problem. 
+#### Step 3.3 Substitute Missing Values
+```{r}
+#check na values
+null_list = colSums(is.na(azdias1_oh))
+null_per = null_list / nrow(azdias1_oh) * 100
+hist(null_per)
+```
+```{r}
+# impute missing values with median
+library(caret)
+azdias1_impute = predict(preProcess(azdias1_oh,method = 'medianImpute'),newdata = azdias1_oh) 
+#export clean data
+write.csv(azdias1_impute,file="C:/Users/Jennifer/Downloads/azdias1_impute.csv",quote=F,row.names = F)
+```
+Step 1 to Step 3 Summary: Above all is the whole process of data processing. From there we transfered data type and dealt with missing values. Next, we are moving on to Step 4: Feature Transform
+### Step 4 Feature Transformation
+#### Step4.1 Apply Principle Component Analysis
+Before we apply dimensionality reduction techniques to the data, we need to perform feature scaling so that the principal component vectors are not influenced by the natural differences in scale for features.
+```{r}
+setwd('C:/Users/Jennifer/Downloads')
+azdias1_impute = read.csv("azdias1_impute.csv")
+#use PCA
+library(FactoMineR)
+pca_facto = PCA(azdias1_impute,graph = F)
+library(factoextra)
+fviz_eig(pca_facto,ncp=125,addlabels = T)
+```
+
+```{r}
+#check variance explained
+pca_facto$eig
+get_eigenvalue(pca_facto)
+```
+
+```{r}
+#Re-apply PCA to the data while selecting for number of components to retain.
+pca_facto = PCA(azdias1_impute,scale.unit = T,ncp = 77,graph = F)
+#print result
+print(pca_facto)
+```
+Step 4.1 Summary: I kept 77 final principal components, we can see there is a small variance frop around 77. 
+After some investigation, I found the drop takes place at 78, the cumulative variance is more than 95%.
+I think it is good enough to step forward into the next step.
+### Step4.2 Interpret Principle Components
+Now that we have our transformed principal components, it's a nice idea to check out the weight of each variable on the first few components to see if they can be interpreted in some fashion.
+The further a weight is from zero, the more the principal component is in the direction of the corresponding feature.
+If two features have large weights of the same sign (both positive or both negative), then increases in one tend expect to be associated with increases in the other. 
+To contrast, features with different signs can be expected to show a negative correlation: increases in one variable should result in a decrease in the other.
+```{r}
+# Map weights for the first principal component to corresponding feature names
+# and then print the linked values, sorted by weight.
+var <- get_pca_var(pca_facto)
+var
+sort(var$cor[,1]) ## weights for variables, pc1,  
+```
+FINANZ_MINIMALIST, most negtive corelated,
+LP_STATUS_GROB_1, most positive corelated
+```{r}
+#Map weights for the second principal component to corresponding feature names
+# and then print the linked values, sorted by weight.
+sort(var$cor[,2])
+```
+ALTERSKATEGORIE_GROB, most negtive corelated,
+SEMIO_REL, most positive corelated
+```{r}
+#Map weights for the second principal component to corresponding feature names
+# and then print the linked values, sorted by weight.
+sort(var$cor[,3])
+```
+SEMIO_VERT, most negtive corelated,
+ANREDE_KZ, most positive corelated
+```{r}
+#use pca coordinates for the original data
+pca_facto$ind$coord
+ind_coord = as.data.frame(pca_facto$ind$coord)
+pca_df = ind_coord
+pca_df = round(pca_df,2)
+head(pca_df)
+str(pca_df)
+write.csv(pca_df,file="C:/Users/Jennifer/Downloads/pca_df.csv",quote=F,row.names = F)
+pca_df = as.matrix(pca_df)
+dim(pca_df)
+pca_df = as.data.frame(pca_df)
+setwd('C:/Users/Jennifer/Downloads')
+pca_df = read.csv("pca_df.csv")
+```
+
+```{r}
+#visulization
+fviz_pca_var(pca_facto, axes = c(1,1), col.var = "contrib", 
+  select.var = list(contrib = 5), gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),col.circle = 'steelblue',repel = T)
+```
+```{r}
+fviz_pca_var(pca_facto, axes = c(2,2), col.var = "contrib", 
+  select.var = list(contrib = 5), gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),col.circle = 'steelblue',repel = T)
+```
+Step 4 Summary:
+From the above data cleaning and rescalling process, we can see for the first three principal components, 
+
+the most weighted features are
+FINANZ_MINIMALIST, most negtive corelated,
+LP_STATUS_GROB_1, most positive corelated
+
+  FINANZ_MINIMALIST: financial typology
+  LP_STATUS_GROB_1: social status rough - low-income earners
+
+Second: 
+ALTERSKATEGORIE_GROB, most negtive corelated,
+SEMIO_REL, most positive corelated
+
+  ALTERSKATEGORIE_GROB:age classification through prename analysis 
+  SEMIO_REL: affinity indicating in what way the person is religious
+
+Third: 
+SEMIO_VERT, most negtive corelated,
+ANREDE_KZ, most positive corelated
+
+  SEMIO_VERT:affinity indicating in what way the person is dreamily
+  ANREDE_KZ: gender
+
+I list the description of each feature and we can see the influence of 'financial typology' is most obvious. For the first principal compnent, these two features has high negative correlation which is expected. As 'LP_STATUS_GROB_1.0' represents low-income earners.
+
+For the second principal component, one is age classification through prename analysis, another is affinity indicating in what way the person is religious
+
+What's more, in the third principal component, one is affinity indicating in what way the person is dreamily and another one is gender.
+
+### Step 5 Clean Customer Dataset
+```{r}
+# load data
+setwd('C:/Users/Jennifer/Downloads')
+customers = read.csv('Udacity_CUSTOMERS_Subset.csv', sep = ';')
+customers_copy = customers
+
+# identify missing values in columns and convert to NA
+
+for (i in 1:85){
+  print(i)
+  na_code = as.list(na_list[[i]])
+  print(na_code)
+  for (na in na_code){
+    if (na == ""){
+      next
+    }
+    else if (class(na)== "character"){
+      print(na)
+      customers_copy[customers_copy[,i] %in% c(na,""),i] = NA
+    } else{
+      na = as.integer(na)
+      print(na)
+      customers_copy[customers_copy[,i] %in% c(na,""),i] = NA
+    }
+  }
+}
+#drop the same column as in azdias
+customers_copy = select(customers_copy,-c(1, 12, 41, 44, 48, 65))
+# missingdata in rows
+missingdata_rows_customer = lapply(1:191652, function(x) sum(is.na(customers_copy[x,])))
+missingdata_r_customer = as.data.frame(missingdata_rows_customer)
+missingdata_r_customer = t(missingdata_r_customer)
+colnames(missingdata_r_customer) = c("missingcount")
+customers_copy = cbind(customers_copy,missingdata_r_customer)
+# drop rows that have missing values more than 5
+customer_1 = customers_copy[customers_copy$missingcount<=5,]
+customer_2 = customers_copy[customers_copy$missingcount>5,]
+customer_1 = select(customer_1,-c(missingcount))
+```
+```{r}
+#transfer to dummy variable 'CJT_GESAMTTYP', 'FINANZTYP','LP_FAMILIE_GROB', 'LP_STATUS_GROB', #'NATIONALITAET_KZ', 'SHOPPER_TYP', 'ZABEOTYP', 'OST_WEST_KZ' 
+library(fastDummies)
+customer_oh = dummy_cols(customer_1, select_columns = c('CJT_GESAMTTYP','FINANZTYP', 'LP_FAMILIE_GROB', 'LP_STATUS_GROB', 'NATIONALITAET_KZ', 'SHOPPER_TYP', 'ZABEOTYP', 'OST_WEST_KZ'))
+str(customer_oh)
+customer_oh = select(customer_oh, -c('CJT_GESAMTTYP','FINANZTYP', 'LP_FAMILIE_GROB', 'LP_STATUS_GROB', 'NATIONALITAET_KZ', 'SHOPPER_TYP', 'ZABEOTYP', 'OST_WEST_KZ'))
+#LP_FAMILIE_GROB_NA,NATIONALITAET_KZ_NA,SHOPPER_TYP_NA      
+
+#drop features that have too many levels 'GFK_URLAUBERTYP', 'LP_FAMILIE_FEIN', 'LP_STATUS_FEIN', 'GEBAEUDETYP', 'CAMEO_DEUG_2015', 'CAMEO_DEU_2015'
+customer_oh = select(customer_oh, -c('GFK_URLAUBERTYP', 'LP_FAMILIE_FEIN', 'LP_STATUS_FEIN', 'GEBAEUDETYP', 'CAMEO_DEUG_2015', 'CAMEO_DEU_2015'))
+```
+```{r}
+#re-engineering feature
+customer_oh = create_newfeature1(customer_oh)
+
+# One-hot encode the 3 new features
+customer_oh = dummy_cols(customer_oh, select_columns = c('movement','region','decades'))
+# drop original column
+customer_oh = select(customer_oh,-c(PRAEGENDE_JUGENDJAHRE,movement,region,decades))
+# drop original column
+customers_copy = select(customers_copy,-c(PRAEGENDE_JUGENDJAHRE))
+
+customer_oh = create_newfeature2(customer_oh)
+# One-hot encode the 2 new features
+customer_oh = dummy_cols(customer_oh, select_columns = c('household_wealth','life_stage'))
+# drop original column
+customer_oh = select(customer_oh,-c(CAMEO_INTL_2015,household_wealth,life_stage))
+```
+```{r}
+# Drop Other Features 'LP_LEBENSPHASE_FEIN', 'LP_LEBENSPHASE_GROB', 'WOHNLAGE', 'PLZ8_BAUMAX'
+customer_oh = select(customer_oh, -c(LP_LEBENSPHASE_FEIN,LP_LEBENSPHASE_GROB,WOHNLAGE,PLZ8_BAUMAX))
+str(customer_oh)
+```
+```{r}
+null_list_c = colSums(is.na(customer_oh))
+null_per_c = null_list_c / nrow(customer_oh) * 100
+hist(null_per_c)
+write.csv(customer_oh,file="C:/Users/Jennifer/Downloads/customer_oh.csv",quote=F,row.names = F)
+```
+
+### Summary
+From the above coding, we finished data cleaning and data re-scalling using PCA. Next, we will move on to clustering.

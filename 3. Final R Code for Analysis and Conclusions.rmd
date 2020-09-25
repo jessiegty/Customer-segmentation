@@ -1,0 +1,349 @@
+---
+title: "5. Final R Code for Analysis and Conclusions"
+author: "Jennifer"
+date: "2019/4/26"
+output: html_document
+---
+### Step 5 Clustering
+#### Step 5.1 loading data
+```{r}
+setwd("C:/Users/Jennifer/Downloads")
+general = read.csv('azdias_clean.csv')
+customer = read.csv('customers_clean.csv')
+pca_df = read.csv('pca_df.csv')
+
+```
+#### Step 5.2 K-means Clustering on Population Dataset
+```{r}
+# kmeans, choose number of clusters, should have been set seed
+set.seed(1706)
+km_cluster_1 = kmeans(x = pca_df,centers = 1,iter.max = 100,nstart = 25)
+set.seed(1706)
+km_cluster_2 = kmeans(x = pca_df,centers = 2,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_3 = kmeans(x = pca_df,centers = 3,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_4 = kmeans(x = pca_df,centers = 4,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_5 = kmeans(x = pca_df,centers = 5,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_6 = kmeans(x = pca_df,centers = 6,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_7 = kmeans(x = pca_df,centers = 7,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_8 = kmeans(x = pca_df,centers = 8,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_9 = kmeans(x = pca_df,centers = 9,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_10 = kmeans(x = pca_df,centers = 10,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_11 = kmeans(x = pca_df,centers = 11,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_12 = kmeans(x = pca_df,centers = 12,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_13 = kmeans(x = pca_df,centers = 13,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_14 = kmeans(x = pca_df,centers = 14,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_15 = kmeans(x = pca_df,centers = 15,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_16 = kmeans(x = pca_df,centers = 16,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_17 = kmeans(x = pca_df,centers = 17,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_18 = kmeans(x = pca_df,centers = 18,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_19 = kmeans(x = pca_df,centers = 19,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_20 = kmeans(x = pca_df,centers = 20,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_21 = kmeans(x = pca_df,centers = 21,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_22 = kmeans(x = pca_df,centers = 22,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_23 = kmeans(x = pca_df,centers = 23,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_24 = kmeans(x = pca_df,centers = 24,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_25 = kmeans(x = pca_df,centers = 25,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_26 = kmeans(x = pca_df,centers = 26,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_27 = kmeans(x = pca_df,centers = 27,iter.max = 1000,nstart = 25)
+set.seed(1706)
+km_cluster_28 = kmeans(x = pca_df,centers = 28,iter.max = 1000,nstart = 25)
+```
+```{r}
+```
+```{r}
+ratio_ss_1 = km_cluster_1$betweenss/km_cluster_1$totss;ratio_ss_1
+ratio_ss_2 = km_cluster_2$betweenss/km_cluster_2$totss;ratio_ss_2
+ratio_ss_3 = km_cluster_3$betweenss/km_cluster_3$totss;ratio_ss_3
+ratio_ss_4 = km_cluster_4$betweenss/km_cluster_4$totss;ratio_ss_4
+ratio_ss_5 = km_cluster_5$betweenss/km_cluster_5$totss;ratio_ss_5
+ratio_ss_6 = km_cluster_6$betweenss/km_cluster_6$totss;ratio_ss_6
+ratio_ss_7 = km_cluster_7$betweenss/km_cluster_7$totss;ratio_ss_7
+ratio_ss_8 = km_cluster_8$betweenss/km_cluster_8$totss;ratio_ss_8
+ratio_ss_9 = km_cluster_9$betweenss/km_cluster_9$totss;ratio_ss_9
+ratio_ss_10 = km_cluster_10$betweenss/km_cluster_10$totss;ratio_ss_10
+ratio_ss_11 = km_cluster_11$betweenss/km_cluster_11$totss;ratio_ss_11
+ratio_ss_12 = km_cluster_12$betweenss/km_cluster_12$totss;ratio_ss_12
+ratio_ss_13 = km_cluster_13$betweenss/km_cluster_13$totss;ratio_ss_13
+ratio_ss_14 = km_cluster_14$betweenss/km_cluster_14$totss;ratio_ss_14
+ratio_ss_15 = km_cluster_15$betweenss/km_cluster_15$totss;ratio_ss_15
+ratio_ss_16 = km_cluster_16$betweenss/km_cluster_16$totss;ratio_ss_16
+ratio_ss_17 = km_cluster_17$betweenss/km_cluster_17$totss;ratio_ss_17
+ratio_ss_18 = km_cluster_18$betweenss/km_cluster_18$totss;ratio_ss_18
+ratio_ss_19 = km_cluster_19$betweenss/km_cluster_19$totss;ratio_ss_19
+
+ratio_ss = c(ratio_ss_1,ratio_ss_2,ratio_ss_3,ratio_ss_4,ratio_ss_5,ratio_ss_6,ratio_ss_7,ratio_ss_8,ratio_ss_9,ratio_ss_10,ratio_ss_11,ratio_ss_12,ratio_ss_13,ratio_ss_14,ratio_ss_15,ratio_ss_16,ratio_ss_17,ratio_ss_18,ratio_ss_19)
+ratio_ss
+library(ggplot2)
+ggplot(data=data.frame(cluster = 1:19,ratio_ss),aes(x=cluster,y=ratio_ss))+
+  geom_line(col='steelblue',size=1.2)+
+  geom_point()+
+  scale_x_continuous(breaks=seq(1,19,1))
+```
+```{r}
+within_ss_1 = km_cluster_1$tot.withinss;within_ss_1
+within_ss_2 = km_cluster_2$tot.withinss;within_ss_2
+within_ss_3 = km_cluster_3$tot.withinss;within_ss_3
+within_ss_4 = km_cluster_4$tot.withinss;within_ss_4
+within_ss_5 = km_cluster_5$tot.withinss;within_ss_5
+within_ss_6 = km_cluster_6$tot.withinss;within_ss_6
+within_ss_7 = km_cluster_7$tot.withinss;within_ss_7
+within_ss_8 = km_cluster_8$tot.withinss;within_ss_8
+within_ss_9 = km_cluster_9$tot.withinss;within_ss_9
+within_ss_10 = km_cluster_10$tot.withinss;within_ss_10
+within_ss_11 = km_cluster_11$tot.withinss;within_ss_11
+within_ss_12 = km_cluster_12$tot.withinss;within_ss_12
+within_ss_13 = km_cluster_13$tot.withinss;within_ss_13
+within_ss_14 = km_cluster_14$tot.withinss;within_ss_14
+within_ss_15 = km_cluster_15$tot.withinss;within_ss_15
+within_ss_16 = km_cluster_16$tot.withinss;within_ss_16
+within_ss_17 = km_cluster_17$tot.withinss;within_ss_17
+within_ss_18 = km_cluster_18$tot.withinss;within_ss_18
+within_ss_19 = km_cluster_19$tot.withinss;within_ss_19
+within_ss_20 = km_cluster_20$tot.withinss;within_ss_20
+within_ss_21 = km_cluster_21$tot.withinss;within_ss_21
+within_ss_22 = km_cluster_22$tot.withinss;within_ss_22
+within_ss_23 = km_cluster_23$tot.withinss;within_ss_23
+within_ss_24 = km_cluster_24$tot.withinss;within_ss_24
+within_ss_25 = km_cluster_25$tot.withinss;within_ss_25
+within_ss_26 = km_cluster_26$tot.withinss;within_ss_26
+within_ss_27 = km_cluster_27$tot.withinss;within_ss_27
+within_ss_28 = km_cluster_28$tot.withinss;within_ss_28
+
+within_ss = c(within_ss_1,within_ss_2,within_ss_3,within_ss_4,within_ss_5,within_ss_6,within_ss_7,within_ss_8,within_ss_9,within_ss_10,within_ss_11,within_ss_12,within_ss_13,within_ss_14,within_ss_15,within_ss_16,within_ss_17,within_ss_18,within_ss_19,within_ss_20,within_ss_21,within_ss_22,within_ss_23,within_ss_24,within_ss_25,within_ss_26,within_ss_27,within_ss_28)
+
+within_ss = c(within_ss_1,within_ss_2,within_ss_3,within_ss_4,within_ss_5,within_ss_6,within_ss_7,within_ss_8,within_ss_9,within_ss_10,within_ss_11,within_ss_12,within_ss_13,within_ss_14,within_ss_15,within_ss_16,within_ss_17,within_ss_18,within_ss_19)
+
+within_ss
+library(ggplot2)
+ggplot(data=data.frame(cluster = 1:19,within_ss),aes(x=cluster,y=within_ss))+
+  geom_line(col='steelblue',size=1.2)+
+  geom_point()+
+  scale_x_continuous(breaks=seq(1,19,1))
+```
+```{r}
+within_ss = c(within_ss_1,within_ss_2,within_ss_3,within_ss_4,within_ss_5,within_ss_6,within_ss_7,within_ss_8,within_ss_9,within_ss_10,within_ss_11,within_ss_12,within_ss_13,within_ss_14,within_ss_15,within_ss_16,within_ss_17,within_ss_18,within_ss_19,within_ss_20,within_ss_21,within_ss_22,within_ss_23,within_ss_24,within_ss_25,within_ss_26,within_ss_27,within_ss_28)
+within_ss_2
+length(within_ss)
+```
+```{r}
+set.seed(617)
+# choose 16 clusters based on previous visulization
+km = kmeans(x = pca_df,centers = 16,iter.max=10000,nstart=25)
+k_segments = km$cluster
+table(k_segments)
+```
+#### Step 5.3 K-means Clustering on Customer Dataset
+```{r}
+#apply kmeans clusters on customer data
+centers = km$centers
+write.csv(centers,file="C:/Users/Jennifer/Downloads/km_centers.csv",quote=F,row.names = F)
+centers = read.csv('km_centers.csv')
+centers1 = sapply(1:16, function(x) centers[x,])
+centers1
+
+closest.cluster <- function(x) {
+  cluster.dist <- apply(centers, 1, function(y) sqrt(sum((x-y)^2)))
+  return(which.min(cluster.dist)[1])
+}
+clusters_cus <- apply(pca_cus, 1, closest.cluster)
+clusters_cus
+write.csv(clusters_cus,file="C:/Users/Jennifer/Downloads/clusters_cus.csv",quote=F,row.names = F)
+
+clusters_az <- apply(pca_df, 1, closest.cluster)
+clusters_az
+write.csv(clusters_az,file="C:/Users/Jennifer/Downloads/clusters_az.csv",quote=F,row.names = F)
+
+```
+##### Step 5.4 Analysis
+```{r}
+#different clusters apply to population data
+library(ggplot2)
+distr_az = table(cluster_az)
+distr_az = distr_az/nrow(general)*100
+distr_az = data.frame(distr_az)
+colnames(distr_az)=c('cluster','freq')
+ggplot(distr_az,aes(cluster,freq))+
+  geom_bar(stat = 'identity')
+```
+```{r}
+#different clusters apply to customer data
+distr_cus = table(cluster_cus)
+distr_cus = distr_cus/nrow(customer)*100
+distr_cus = data.frame(distr_cus)
+colnames(distr_cus)=c('cluster','freq')
+ggplot(distr_cus,aes(cluster,freq))+
+  geom_bar(stat = 'identity')
+```
+```{r}
+#compare distribution between population and customers
+compare = cbind(distr_az,distr_cus$freq)
+colnames(compare)=c('cluster','freq_az','freq_customer')
+compare
+```
+```{r}
+#overrepresented group in general population
+target = general[cluster_az==2,]
+nrow(target)
+```
+```{r}
+#underrepresented group in general population
+outside = general[cluster_az==5,]
+nrow(outside)
+```
+```{r}
+#comparison
+plot_comparison = function(col_name){
+  plot1 = ggplot(outside,aes_string(x=col_name))+geom_bar()+ggtitle('outside population distribution')
+  plot2 = ggplot(general,aes_string(x=col_name))+geom_bar()+ggtitle('general population distribution')
+  plot3 = ggplot(target,aes_string(x=col_name))+geom_bar()+ggtitle('target population distribution')
+  print(plot1)
+  print(plot2)
+  print(plot3)
+}
+```
+```{r}
+plot_comparison('LP_STATUS_GROB_1') 
+#customer group tend to be mostly top  earners
+```
+```{r}
+plot_comparison('FINANZ_MINIMALIST')#not interested in low financial interest
+```
+```{r}
+plot_comparison('ANREDE_KZ')#tend to be male
+```
+```{r}
+plot_comparison('SEMIO_PFLICHT') # Person has highest affinity of duriful is target by the company. 
+```
+```{r}
+plot_comparison('SEMIO_VERT') # Person has lowest affinity of dreamily is target by the company. 
+```
+```{r}
+plot_comparison('HH_EINKOMMEN_SCORE')# highest income households has the highest penertration. customers almost evenly comes from different income households. highest income households is the biggest part.
+```
+```{r}
+plot_comparison('ALTERSKATEGORIE_GROB')#age classification, target group tend to be >60, 46-60 years old
+```
+```{r}
+#count of the comparison
+plot_comparison_df = function(col_name){
+  df1 = data.frame(table(outside[,col_name])/nrow(outside)*100) 
+  df2 = data.frame(table(general[,col_name])/nrow(general)*100) 
+  df3 = data.frame(table(target[,col_name])/nrow(target)*100) 
+  compare_df = cbind(df1,df2$Freq,df3$Freq)
+  colnames(compare_df)=c(col_name,'outside group','general population','target group')
+  compare_df
+}
+```
+```{r}
+plot_comparison_df('LP_STATUS_GROB')
+
+plot_comparison_df('FINANZ_MINIMALIST')#not interested in low financial interest
+
+
+plot_comparison_df('HH_EINKOMMEN_SCORE')
+
+plot_comparison_df('ANREDE_KZ')#tend to be male
+
+plot_comparison_df('ALTERSKATEGORIE_GROB')#age classification, target group tend to be >60, 46-60 years old
+
+plot_comparison_df('FINANZTYP')
+```
+
+```{r}
+cluster2 = general[cluster_az==2,]
+nrow(cluster2)
+cluster11 = general[cluster_az==11,]
+nrow(cluster11)
+
+```
+```{r}
+#comparison
+plot_comparison_1 = function(col_name){
+  plot1 = ggplot(general,aes_string(x=col_name))+geom_bar()+ggtitle('general population distribution')
+  plot2 = ggplot(cluster2,aes_string(x=col_name))+geom_bar()+ggtitle('cluster2 population distribution')
+  plot3 = ggplot(cluster11,aes_string(x=col_name))+geom_bar()+ggtitle('cluster11 population distribution')
+  print(plot1)
+  print(plot2)
+  print(plot3)
+}
+
+plot_comparison_1('HH_EINKOMMEN_SCORE')
+
+plot_comparison_1('FINANZ_MINIMALIST')
+
+plot_comparison_1('ANREDE_KZ')
+
+plot_comparison_1('ALTERSKATEGORIE_GROB')
+
+```
+```{r}
+#count of the comparison
+plot_comparison_df_1 = function(col_name){
+  df1 = data.frame(table(general[,col_name])/nrow(general)*100) 
+  df2 = data.frame(table(cluster2[,col_name])/nrow(cluster2)*100) 
+  df3 = data.frame(table(cluster11[,col_name])/nrow(cluster11)*100) 
+  compare_df = cbind(df1,df2$Freq,df3$Freq)
+  colnames(compare_df)=c(col_name,'general population','cluster2','cluster11')
+  compare_df
+}
+
+
+plot_comparison_df_1('HH_EINKOMMEN_SCORE')
+
+plot_comparison_df_1('FINANZ_MINIMALIST')
+
+plot_comparison_df_1('ANREDE_KZ')
+
+plot_comparison_df_1('ALTERSKATEGORIE_GROB')
+```
+```{r}
+mean_general = colMeans(general)
+mean_cluster_2 = colMeans(cluster2)
+mean_cluster_11 = colMeans(cluster11)
+```
+```{r}
+compare_3group = rbind(mean_general,mean_cluster_2,mean_cluster_11)
+compare_3group
+compare_3group_t = data.frame(t(compare_3group))
+compare_3group_t
+compare_3group_t$colname = rownames(compare_3group_t)
+```
+```{r}
+library(tidyr)
+compare_3group_t[1:10,] %>%
+  gather(key = cluster, value = value,1:3)%>%
+  ggplot(aes(x = colname, y = value, fill=factor(cluster)))+
+  geom_bar(stat= 'identity',position = 'dodge')+
+  coord_flip()
+compare_3group_t[11:20,] %>%
+  gather(key = cluster, value = value,1:3)%>%
+  ggplot(aes(x = colname, y = value, fill=factor(cluster)))+
+  geom_bar(stat= 'identity',position = 'dodge')+
+  coord_flip()
+```
+
